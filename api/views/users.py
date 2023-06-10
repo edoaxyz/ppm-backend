@@ -1,4 +1,5 @@
 from rest_framework import viewsets, mixins
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.decorators import action
 from django.contrib.auth import authenticate, login
@@ -30,6 +31,11 @@ class UserViewSet(
                 return Response(status=200)
         return Response(status=403)
 
+    @action(detail=False, methods=["get"], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        self.kwargs["pk"] = request.user.id
+        return self.retrieve(request)
+
     def check_object_permissions(self, request, obj):
         if (
             self.action in ["delete", "update", "create", "partial_update"]
@@ -37,9 +43,3 @@ class UserViewSet(
         ):
             self.permission_denied(request)
         return super().check_object_permissions(request, obj)
-
-    def get_object(self):
-        pk = self.kwargs[self.lookup_url_kwarg or self.lookup_field]
-        if pk == "me" and self.request.user.is_authenticated:
-            return self.request.user
-        return super().get_object()
