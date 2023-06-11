@@ -8,3 +8,4 @@ from .answers import (
 )
 from .questions import QuestionPolymorphicSerializer
 from .list import UserListSerializer, AnswerListSerializer, SurveyListSerializer
+from .report import ReportSerializer

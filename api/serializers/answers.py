@@ -54,7 +54,7 @@ class MultipleChoiceAnswerSerializer(FieldAnswerSerializer):
 
     def get_fields(self):
         fields = super().get_fields()
-        fields["choices"].queryset = self._field.choices.all()
+        fields["choices"].child_relation.queryset = self._field.choices.all()
         fields["choices"].required = self._field.mandatory
         fields["choices"].label = self._field.title
         fields["choices"].help_text = self._field.description

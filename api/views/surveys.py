@@ -2,10 +2,16 @@ from django.db.models import Q
 from rest_framework import viewsets
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.decorators import action
+from rest_framework.response import Response
 
 from surveys.models import Survey
 
-from ..serializers import SurveyDetailSerializer, SurveyListSerializer, SurveyAnonymousSerializer
+from ..serializers import (
+    SurveyDetailSerializer,
+    SurveyListSerializer,
+    SurveyAnonymousSerializer,
+    ReportSerializer,
+)
 
 
 class SurveyViewSet(viewsets.ModelViewSet):
@@ -48,3 +54,14 @@ class SurveyViewSet(viewsets.ModelViewSet):
         ):
             self.permission_denied(request, "You are not allowed to edit this survey")
         return super().check_object_permissions(request, obj)
+
+    @action(detail=True, methods=["get"], permission_classes=[IsAuthenticated])
+    def report(self, request, pk=None):
+        survey = self.get_object()
+        if survey.author != request.user:
+            self.permission_denied(
+                request, "You are not allowed to view this survey's results"
+            )
+        return Response(
+            ReportSerializer(survey, context=self.get_serializer_context()).data
+        )

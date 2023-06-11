@@ -1,3 +1,4 @@
+from django.urls import reverse
 from rest_framework import serializers
 
 from surveys.models import Survey, Question
@@ -8,6 +9,7 @@ from .list import SurveyListSerializer
 
 class SurveyDetailSerializer(serializers.ModelSerializer):
     questions = QuestionPolymorphicSerializer(many=True, default=[])
+    answers = serializers.SerializerMethodField(read_only=True)
 
     def _save_questions(self, survey, questions):
         if questions == None:
@@ -45,6 +47,11 @@ class SurveyDetailSerializer(serializers.ModelSerializer):
 
     def save(self, **kwargs):
         return super().save(author=self.context.get("request").user, **kwargs)
+
+    def get_answers(self, obj):
+        return self.context["request"].build_absolute_uri(
+            reverse("answer-list", kwargs={"survey": obj.pk})
+        )
 
     class Meta:
         model = Survey

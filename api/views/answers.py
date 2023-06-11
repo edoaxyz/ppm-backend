@@ -29,6 +29,8 @@ class AnswerViewSet(
 
     def check_permissions(self, request):
         survey = self.get_survey()
+        if survey.author == request.user:
+            return super().check_permissions(request)
         if survey.allowed_users.count() > 0 and not survey.allowed_users.contains(
             request.user
         ):
