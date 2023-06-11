@@ -177,6 +177,26 @@ class AnswerSerializer(serializers.ModelSerializer):
             **kwargs,
         )
 
+    def build_url_field(self, field_name, model_class):
+        field_class, field_kwargs = super().build_url_field(field_name, model_class)
+
+        class Field(field_class):
+            def __init__(self, *args, **kwargs):
+                self.survey = kwargs.pop("survey", None)
+                super().__init__(*args, **kwargs)
+
+            def get_url(self, obj, view_name, request, format):
+                if hasattr(obj, "pk") and obj.pk in (None, ""):
+                    return None
+
+                lookup_value = getattr(obj, self.lookup_field)
+                kwargs = {self.lookup_url_kwarg: lookup_value, "survey": self.survey}
+                return self.reverse(
+                    view_name, kwargs=kwargs, request=request, format=format
+                )
+
+        return Field, {**field_kwargs, "survey": self._survey_instance.pk}
+
     def to_representation(self, instance):
         instance.field_answers = {a.field.pk: a for a in instance.fields.all()}
         return super().to_representation(instance)
@@ -189,5 +209,5 @@ class AnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Answer
-        fields = ["id", "user", "date_created", "date_modified", "field_answers"]
+        fields = ["id", "url", "user", "date_created", "date_modified", "field_answers"]
         read_only_fields = ["user", "date_created", "date_modified"]

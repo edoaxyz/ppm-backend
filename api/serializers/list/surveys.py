@@ -3,7 +3,7 @@ from rest_framework import serializers
 
 from surveys.models import Survey
 
-class SurveyListSerializer(serializers.ModelSerializer):
+class SurveyListSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Survey
         exclude = [
